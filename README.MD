@@ -82,11 +82,7 @@ dotnet run
 
 La API se ejecutará normalmente en:
 
-    http://localhost:5000
-
-o
-
-    https://localhost:5001
+    http://localhost:5289
 
 ------------------------------------------------------------------------
 
