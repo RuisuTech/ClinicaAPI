@@ -1,207 +1,192 @@
-# Sistema de Gestión de Citas Médicas
+# ClinicaAPI
 
-API REST desarrollada con **ASP.NET Core (.NET 8)** para administrar
-pacientes, médicos y citas médicas.
+API REST desarrollada con **ASP.NET Core (.NET 8)** para la gestión de
+pacientes, médicos y citas médicas en una clínica.
 
-Este proyecto fue desarrollado como parte del curso de **Servicios Web**
-en la **Escuela de Educación Superior Tecnológica Privada IDAT**.
+Proyecto académico desarrollado como parcial del curso de **Servicios
+Web** en la **Escuela de Educación Superior Tecnológica Privada IDAT**.
 
-------------------------------------------------------------------------
+---
 
-# Descripción del Proyecto
+## Descripción
 
-El sistema consiste en una **API RESTful** que permite gestionar
-información relacionada con:
+API RESTful que permite gestionar información de una clínica
+implementando operaciones **CRUD** para cada entidad. Los datos se
+almacenan **en memoria** (sin base de datos).
 
--   Pacientes
--   Médicos
--   Citas médicas
+### Entidades
 
-La API implementa operaciones **CRUD (Create, Read, Update, Delete)**
-para cada entidad del sistema mediante endpoints HTTP.
+- **Paciente**: nombre, DNI, teléfono, fecha de nacimiento, dirección
+- **Médico**: nombre, especialidad, CMP, teléfono, email
+- **Cita**: paciente, médico, fecha/hora, duración, estado, motivo,
+  observaciones (con auditoría de fechas y eliminación lógica)
 
-Las principales funcionalidades incluyen:
+### Funcionalidades
 
--   Registro de pacientes
--   Registro de médicos
--   Programación de citas médicas
--   Consulta de registros
--   Actualización de información
--   Eliminación de registros
+- Registro, consulta, actualización y eliminación de pacientes
+- Registro, consulta, actualización y eliminación de médicos
+- Programación de citas con validación de existencia de paciente y
+  médico
+- Estados de cita: Programada, Confirmada, Cancelada, Atendida
+- Eliminación lógica de citas (soft delete)
+- Manejo global de errores con middleware personalizado
+- Documentación interactiva con Swagger/OpenAPI
 
-------------------------------------------------------------------------
+---
 
-# Tecnologías Utilizadas
+## Tecnologías
 
--   .NET 8
--   ASP.NET Core Web API
--   C#
--   Postman (para pruebas)
--   GitHub (repositorio del proyecto)
+- .NET 8
+- ASP.NET Core Web API
+- C#
+- Swagger / Swashbuckle
+- Postman (para pruebas)
+- GitHub
 
-------------------------------------------------------------------------
+---
 
-# Requisitos del Sistema
+## Requisitos
 
-Antes de ejecutar el proyecto es necesario instalar:
+- **.NET SDK 8.0** o superior
+- **Git**
+- **Postman** (opcional, para probar la API)
+- **Visual Studio 2022** o **Visual Studio Code**
 
--   **.NET SDK 8.0 o superior**
--   **Git**
--   **Postman** (opcional, para probar la API)
--   **Visual Studio 2022** o **Visual Studio Code**
+---
 
-------------------------------------------------------------------------
+## Instalación
 
-# Instalación del Proyecto
+### 1. Clonar el repositorio
 
-Siga los siguientes pasos para instalar y ejecutar el proyecto.
-
-## 1. Clonar el repositorio
-
-``` bash
-git clone https://github.com/RuisuTech/Proyecto-Clinica
-```
-
-## 2. Ingresar al directorio del proyecto
-
-``` bash
+```bash
+git clone https://github.com/RuisuTech/Proyecto-Clinica.git
 cd Proyecto-Clinica
 ```
 
-## 3. Restaurar dependencias
+### 2. Restaurar dependencias
 
-``` bash
+```bash
 dotnet restore
 ```
 
-## 4. Ejecutar la aplicación
+### 3. Ejecutar la aplicación
 
-``` bash
+```bash
 dotnet run
 ```
 
-La API se ejecutará normalmente en:
+La API estará disponible en:
 
     http://localhost:5289
 
-------------------------------------------------------------------------
+La documentación Swagger se abre automáticamente al iniciar en
+modo desarrollo:
 
-# Estructura del Proyecto
+    http://localhost:5289/swagger
 
-El proyecto sigue una arquitectura modular basada en ASP.NET Core.
+---
 
-    /Controllers
-        PacientesController.cs
-        MedicosController.cs
-        CitasController.cs
+## Estructura del Proyecto
 
-    /Models
-        Paciente.cs
-        Medico.cs
-        Cita.cs
-
-    /Middleware
-        ErrorHandlingMiddleware.cs
-
-    Program.cs
+```
+/
+├── Controllers/
+│   ├── ControllerPacientes.cs   # Endpoints de pacientes
+│   ├── ControllerMedicos.cs     # Endpoints de médicos
+│   └── ControllerCitas.cs       # Endpoints de citas
+├── Models/
+│   ├── Paciente.cs              # Modelo Paciente
+│   ├── Medico.cs                # Modelo Médico
+│   └── Citas.cs                 # Modelo Cita + FechaAuditorias + EstadoCita
+├── Middleware/
+│   └── ErrorHandlingMiddleware.cs  # Manejo global de errores
+├── Properties/
+│   └── launchSettings.json
+├── Program.cs                   # Configuración de la aplicación
+├── appsettings.json
+└── PARCIAL-00.csproj
+```
 
 ### Controllers
 
-Gestionan las solicitudes HTTP y exponen los endpoints de la API.
+Gestionan las solicitudes HTTP y exponen los endpoints de la API. Cada
+controller contiene operaciones CRUD completas con validaciones.
 
 ### Models
 
-Representan las entidades del sistema:
+Entidades del sistema con validaciones usando `DataAnnotations`:
 
--   Paciente
--   Medico
--   Cita
+- **Paciente**: campos obligatorios con formato de DNI (8 dígitos),
+  teléfono y nombre (solo letras)
+- **Medico**: incluye CMP (5-7 dígitos), especialidad y email
+- **Cita**: hereda de `FechaAuditorias`, incluye enum `EstadoCita`
+  con valores: Programada, Confirmada, Cancelada, Atendida
 
 ### Middleware
 
-El middleware **ErrorHandlingMiddleware** captura errores globales y
-devuelve respuestas estructuradas en JSON.
+`ErrorHandlingMiddleware` captura excepciones no controladas y devuelve
+respuestas JSON estructuradas con código HTTP 500.
 
-------------------------------------------------------------------------
+---
 
-# Endpoints Principales
+## Endpoints
 
-## Pacientes
+### Pacientes
 
-  Método   Endpoint          Descripción
-  -------- ----------------- ---------------------
-  GET      /pacientes        Listar pacientes
-  POST     /pacientes        Registrar paciente
-  PUT      /pacientes/{id}   Actualizar paciente
-  DELETE   /pacientes/{id}   Eliminar paciente
+| Método  | Endpoint               | Descripción          |
+|---------|------------------------|----------------------|
+| GET     | `/api/pacientes`       | Listar pacientes     |
+| GET     | `/api/pacientes/{id}`  | Obtener paciente     |
+| POST    | `/api/pacientes`       | Registrar paciente   |
+| PUT     | `/api/pacientes/{id}`  | Actualizar paciente  |
+| DELETE  | `/api/pacientes/{id}`  | Eliminar paciente    |
 
-## Médicos
+### Médicos
 
-  Método   Endpoint   Descripción
-  -------- ---------- ------------------
-  GET      /medicos   Listar médicos
-  POST     /medicos   Registrar médico
+| Método  | Endpoint               | Descripción          |
+|---------|------------------------|----------------------|
+| GET     | `/api/medicos`         | Listar médicos       |
+| GET     | `/api/medicos/{id}`    | Obtener médico       |
+| POST    | `/api/medicos`         | Registrar médico     |
+| PUT     | `/api/medicos/{id}`    | Actualizar médico    |
+| DELETE  | `/api/medicos/{id}`    | Eliminar médico      |
 
-## Citas
+### Citas
 
-  Método   Endpoint      Descripción
-  -------- ------------- -----------------
-  GET      /citas        Listar citas
-  POST     /citas        Registrar cita
-  PUT      /citas/{id}   Actualizar cita
-  DELETE   /citas/{id}   Eliminar cita
+| Método  | Endpoint               | Descripción          |
+|---------|------------------------|----------------------|
+| GET     | `/api/citas`           | Listar citas         |
+| GET     | `/api/citas/{id}`      | Obtener cita         |
+| POST    | `/api/citas`           | Registrar cita       |
+| PUT     | `/api/citas/{id}`      | Actualizar cita      |
+| DELETE  | `/api/citas/{id}`      | Eliminar cita (soft) |
 
-------------------------------------------------------------------------
+> **Nota**: Las citas eliminadas se marcan con `FechaEliminacion` y no
+> aparecen en el listado GET, pero persisten en memoria.
 
-# Pruebas con Postman
+---
 
-Las pruebas de la API pueden realizarse mediante **Postman** enviando
-solicitudes HTTP a los endpoints correspondientes.
+## Equipo de Desarrollo
 
-Ejemplos de pruebas realizadas:
+| Integrante                            | Rol                         |
+|---------------------------------------|-----------------------------|
+| Velarde Robles Francisco Xavier Leon  | Desarrollo backend          |
+| Colina Martin Jesus Gabriel           | Controladores y validaciones|
+| Roman Huaman Josled Luis Antonio      | Modelos de datos            |
+| Peña Chavez Gissel Melani             | Pruebas con Postman         |
+| Osorio Guzman Jose Luis               | Documentación y repositorio |
 
--   Registro de paciente (POST)
--   Consulta de pacientes (GET)
--   Registro de médico (POST)
--   Registro de cita médica (POST)
--   Actualización de cita (PUT)
--   Eliminación de registro (DELETE)
+---
 
-------------------------------------------------------------------------
+## Repositorio
 
-# Equipo de Desarrollo
+<https://github.com/RuisuTech/Proyecto-Clinica>
 
-  Integrante                             Rol
-  -------------------------------------- ------------------------------
-  Velarde Robles Francisco Xavier Leon   Desarrollo backend
-  Colina Martin Jesus Gabriel            Controladores y validaciones
-  Roman Huaman Josled Luis Antonio       Modelos de datos
-  Peña Chavez Gissel Melani              Pruebas con Postman
-  Osorio Guzman Jose Luis                Documentación y repositorio
+---
 
-------------------------------------------------------------------------
+## Futuras mejoras
 
-# Repositorio del Proyecto
-
-Repositorio oficial:
-
-https://github.com/RuisuTech/Proyecto-Clinica
-
-------------------------------------------------------------------------
-
-# Conclusiones
-
-Este proyecto demuestra la implementación de una **API REST utilizando
-ASP.NET Core**, aplicando:
-
--   Arquitectura modular
--   Manejo de errores con middleware
--   Validación de datos
--   Operaciones CRUD
--   Pruebas funcionales con Postman
-
-La solución puede ampliarse en el futuro con:
-
--   Base de datos (SQL Server o PostgreSQL)
--   Autenticación con JWT
--   Interfaz web o aplicación móvil
+- Integración con base de datos (SQL Server o PostgreSQL)
+- Autenticación y autorización con JWT
+- Paginación y filtros en los endpoints de consulta
+- Interfaz web o aplicación móvil
